@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JL TELHAS E FERRAGENS</title>
-    <link rel="icon" href="src/imagens/JLImagens/JL-Logo.jpg" type="image/jpg">
+    <title>Main Matrix</title>
+    <link rel="icon" href="src/imagens/MatrixImagens/MatrixPoster.jpg" type="image/jpg">
 
     <!-- Swiper -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
@@ -101,11 +101,80 @@
       <br>
 
       <h3 class="h3-centralizado">
-        <button><a href="#">Mostrar usuários</a></button>
+        <button id="mostrarUsuariosBtn">Mostrar Usuários</button>
       </h3>
 
+      <!-- Swiper para exibir os jogadores -->
 
-      
+      <div class="swiper mySwiper">
+        <h2 class="h2-inside-swiper">Players</h2>
+        <div class="swiper-wrapper" id="swiper-wrapper">
+          
+        </div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-pagination"></div>
+      </div>  
+
+      <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mostrarUsuariosBtn = document.getElementById('mostrarUsuariosBtn');
+            mostrarUsuariosBtn.addEventListener('click', fetchPlayers);
+        });
+
+        // Função para buscar os jogadores do backend e inserir no Swiper
+        async function fetchPlayers() {
+          try {
+            // Faz a requisição à API
+            const response = await fetch('http://localhost:3000/players');
+            const players = await response.json();
+            console.log(players);  // Agora isso imprime os dados dos Players
+
+            // Local onde serão inseridos os slides
+            const swiperWrapper = document.getElementById('swiper-wrapper');
+
+            // Para cada player, cria um slide
+            players.forEach(player => {
+              // Cria o slide com os dados do jogador
+              const slide = document.createElement('div');
+              slide.classList.add('swiper-slide');
+              slide.innerHTML = `
+                <div class="card">
+                  <img src="src/imagens/MatrixImagens/MatrixPoster.jpg" alt="Players" class="bd-placeholder-img card-img-top">
+                  <div class="card-body">
+                    <h5 class="card-title">${player.nome_player}</h5>
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><p>Id: </p><p>${player.id_player}</p></li>
+                    <li class="list-group-item"><p>Mana: </p><p>${player.mana}</p></li>
+                    <li class="list-group-item"><p>Classe: </p><p>${player.classe}</p></li>
+                  </ul>
+                </div>
+              `;
+              swiperWrapper.appendChild(slide);
+            });
+
+            // Inicializa o Swiper após adicionar os slides
+            // new Swiper('.mySwiper', {
+            //   navigation: {
+            //     nextEl: '.swiper-button-next',
+            //     prevEl: '.swiper-button-prev',
+            //   },
+            //   pagination: {
+            //     el: '.swiper-pagination',
+            //     clickable: true,
+            //   },
+            // });
+          } catch (error) {
+            console.error('Erro ao buscar os jogadores:', error);
+          }
+        }
+
+        // Chama a função para buscar e exibir os jogadores quando a página carregar
+        //window.onload = fetchPlayers;
+      </script>
+
       <!-- First Swiper (Usuários) -->
       <div class="swiper mySwiper">
         <h2 class="h2-inside-swiper">Players</h2>
@@ -282,6 +351,8 @@
           <div class="swiper-button-prev"></div>
           <div class="swiper-pagination"></div>
       </div>
+
+
 
       
       
