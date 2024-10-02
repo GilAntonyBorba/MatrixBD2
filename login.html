@@ -81,25 +81,116 @@
     </header>
     
     <main>
-      <form name="SignUp" action="index.html" method="get" id="form-create-account">
+      <form name="Login" id="form-login">
         <h2>Login</h2>
         <div class="form-group">
           <label for="InputLogin">Login</label>
           <input type="text" class="form-control" id="InputLogin" aria-describedby="LoginHelp" placeholder="Seu login">
-          <span class="span_SignUp"></span>
+          <span id="spanLogin" class="span_Login"></span>
         </div>
         <div class="form-group">
           <label for="InputPassword">Senha</label>
           <input type="password" class="form-control" id="InputPassword" placeholder="Senha">
-          <span class="span_SignUp"></span>
+          <span id="spanPassword" class="span_Login"></span>
         </div>
-        <button class="btn btn-primary">Enviar</button>
-         <!-- Link de cadastro abaixo do botão de login -->
+        <div class="form-group hidden">
+          <span id="spanError" class="span_Login"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
         <div class="text-end mt-3">
           <span>Ainda não tem conta?</span>
           <a href="createAccount.html" class="btn-link">Cadastre-se</a>
         </div>
       </form>
+
+      <script>
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+          e.preventDefault();  
+
+          let formValido = true;
+    
+          const user_login_input = document.getElementById('InputLogin');
+          const user_senha_input = document.getElementById('InputPassword');
+
+          const user_login = user_login_input.value;
+          const user_senha = user_senha_input.value;
+    
+          const spanLogin = document.getElementById('spanLogin');
+          const spanPassword = document.getElementById('spanPassword');
+          const spanError = document.getElementById('spanError');
+          const divSpanError = spanError.parentElement;  
+    
+          spanLogin.textContent = "";
+          spanPassword.textContent = "";
+          spanError.textContent = "";
+          divSpanError.classList.add('hidden'); 
+    
+          
+    
+          // Valida form
+          if (user_login === "") {
+              spanLogin.textContent = 'Usuário deve ser preenchido com o nome do usuário do sistema!';
+              formValido = false;
+              user_login_input.classList.add("inputDestacado");
+          }
+          else{
+              user_login_input.classList.remove("inputDestacado");
+          }
+
+          if(user_senha === ""){
+              spanPassword.textContent = 'Uma senha deve ser fornecida!';
+              formValido = false;
+              user_senha_input.classList.add("inputDestacado");
+          }else if(user_senha.indexOf(' ')>=0){
+              spanPassword.textContent = 'A senha não deve ter espaços em branco!';
+              formValido = false;
+              user_senha_input.classList.add("inputDestacado");
+          }else if(user_senha.length < 8){
+              spanPassword.textContent = 'A senha deve conter pelo menos 8 caracteres!';
+              formValido = false;
+              user_senha_input.classList.add("inputDestacado");
+          }else{
+              user_senha_input.classList.remove("inputDestacado");
+          }
+    
+          if (formValido) {
+            try {
+              const response = await fetch('http://localhost:3000/login', { //fetch() utilizado para fazer uma requisição HTTP
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',//indica que o corpo da requisição está em formato JSON.
+                },
+                body: JSON.stringify({ user_login, user_senha })// Envia os dados no corpo da requisição
+              });
+    
+              const data = await response.text();
+    
+              if (response.ok) { // True: geralmente com códigos de status HTTP entre 200 e 299. False: significa que algo deu errado (códigos de erro HTTP como 400 ou 500).
+                window.location.href = 'index.html';  
+              } else {
+                spanError.textContent = 'Erro ao fazer login! ' + data;  
+                divSpanError.classList.remove('hidden'); 
+              }
+            } catch (error) {
+              spanError.textContent = 'Erro ao fazer login! Tente novamente mais tarde!';
+              divSpanError.classList.remove('hidden');
+              if (error.name === 'TypeError') {
+                console.error('Problema de conexão. Verifique se o servidor está rodando e se a URL está correta!', error);
+              } else if (error.name === 'SyntaxError') {
+                console.error('Erro ao interpretar a resposta do servidor. Verifique o formato do retorno!', error);
+              } else {
+                console.error('Erro inesperado! ' + error);
+              }
+            }
+          }
+        });
+      </script>
+
+
+
+
+
+      
     </main>
 
     <!-- Bootstrap -->

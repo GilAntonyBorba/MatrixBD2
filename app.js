@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Client } = require('pg');
 const bodyParser = require('body-parser'); // para processar os dados enviados pelo formulário
-const argon2 = require('argon2'); // MODIFICADO: substituímos bcrypt por argon2
+const argon2 = require('argon2'); 
 
 const app = express();
 app.use(cors());  // Habilita CORS para permitir requisições do front-end
@@ -21,8 +21,8 @@ const client = new Client({
 
 // Conecta ao banco de dados
 client.connect()
-  .then(() => console.log('Conectado ao banco de dados'))
-  .catch(err => console.error('Erro de conexão', err.stack));
+  .then(() => console.log('Conectado ao banco de dados!'))
+  .catch(err => console.error('Erro de conexão!', err.stack));
 
 // Rota para pegar os dados dos jogadores
 // app.get('/players', (req, res) => {
@@ -48,7 +48,7 @@ app.post('/createAccount', async (req, res) => {
   const { user_login, user_senha } = req.body;  // Obtém dados do formulário
 
   if (!user_login || !user_senha) {
-    return res.status(400).send('Login e user_senha são obrigatórios'); //status 400 (Bad Request)
+    return res.status(400).send('Login e user_senha são obrigatórios!'); //status 400 (Bad Request)
   }
 
   try {
@@ -61,18 +61,52 @@ app.post('/createAccount', async (req, res) => {
     client.query(query, [user_login, hashedPassword], (err, result) => {
       if (err) {
         //console.error('Erro ao inserir usuário', err.stack); //stack trace do erro (err.stack), contém informações detalhadas sobre onde e como o erro ocorreu.
-        const errorMessage = err.detail || err.message || 'Erro ao criar conta - Internal Server Error';
-        return res.status(500).send(`Erro ao criar conta: ${errorMessage}`); //status 500 (Internal Server Error) 
+        const errorMessage = err.detail || err.message || 'Erro ao criar conta - Internal Server Error!';
+        return res.status(500).send(`Erro ao criar conta! ${errorMessage}`); //status 500 (Internal Server Error) 
       } else {
-        res.status(200).send('Conta criada com sucesso'); // status 200 (OK) 
+        res.status(200).send('Conta criada com sucesso!'); // status 200 (OK) 
       }
     });
   } catch (error) {
-    console.error('Erro ao criar conta', error);
-    res.status(500).send('Erro ao criar conta');
+    console.error('ERRO ao criar conta!', error);
+    res.status(500).send('ERRO ao criar conta!');
   }
 
 });
+
+
+// Rota para login do usuário (POST)
+app.post('/login', async (req, res) => {
+  //async transforma a função em uma função assíncrona, permitindo o uso de await dentro dela. Isso faz com que o código espere pela conclusão de uma operação assíncrona (como o hashing da senha) antes de continuar para a próxima linha.
+  const { user_login, user_senha } = req.body;// Obtém dados do formulário
+
+  if (!user_login || !user_senha) {
+    return res.status(400).send('Login e senha são obrigatórios!'); //status 400 (Bad Request)
+  }
+
+  try {
+    const query = 'SELECT * FROM Usuario WHERE login = $1';
+    const result = await client.query(query, [user_login]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).send('Usuário não encontrado!');
+    }
+
+    const user = result.rows[0];
+
+    // Verifica se a senha coincide
+    const validPassword = await argon2.verify(user.senha, user_senha);
+    if (!validPassword) {
+      return res.status(401).send('Senha incorreta!');
+    }
+
+    res.status(200).send('Login realizado com sucesso!');
+  } catch (error) {
+    console.error('ERRO ao fazer login!', error);
+    res.status(500).send('ERRO ao fazer login!');
+  }
+});
+
 
 
 // Inicia o servidor na porta 3000
