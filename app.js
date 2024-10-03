@@ -25,18 +25,18 @@ client.connect()
   .catch(err => console.error('Erro de conexão!', err.stack));
 
 // Rota para pegar os dados dos jogadores
-// app.get('/players', (req, res) => {
-//   const query = 'SELECT id_player, nome_player, mana, classe FROM Player';
+app.get('/usuarios', (req, res) => {
+  const query = 'SELECT login, id_user, senha FROM Usuario';
   
-//   client.query(query, (err, result) => {
-//     if (err) {
-//       console.error('Erro na consulta', err.stack);
-//       res.status(500).send('Erro ao consultar jogadores');
-//     } else {
-//       res.json(result.rows);  // Retorna os dados em formato JSON
-//     }
-//   });
-// });
+  client.query(query, (err, result) => {
+    if (err) {
+      console.error('Erro na consulta', err.stack);
+      res.status(500).send('Erro ao consultar jogadores');
+    } else {
+      res.json(result.rows);  // Retorna os dados em formato JSON
+    }
+  });
+});
 
 
 //Para receber os dados de criação de conta e os inserir na tabela correspondente
