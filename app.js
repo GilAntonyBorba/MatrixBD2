@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { Client } = require('pg');
 const bodyParser = require('body-parser'); // para processar os dados enviados pelo formulário
-const argon2 = require('argon2'); 
+const argon2 = require('argon2');
+const multer = require('multer'); 
 
 const app = express();
 app.use(cors());  // Habilita CORS para permitir requisições do front-end
@@ -14,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));  //permite que o servidor Ex
 const client = new Client({
   user: 'postgres',
   host: 'localhost',
-  database: 'Matrix1',
+  database: 'Matrix4',
   password: 'phoenix',
   port: 5432,
 });
@@ -109,6 +110,30 @@ app.post('/login', async (req, res) => {
   
 });
 
+
+// Configuração do multer para upload de arquivos
+const storage = multer.memoryStorage(); // Armazena o arquivo na memória do servidor temporariamente
+const upload = multer({ storage: storage }); //configura o multer para utilizar o armazenamento que acabamos de definir
+
+// Rota para upload de imagem de usuário
+app.post('/uploadImage', upload.single('imagem_do_formData'), async (req, res) => {// upload.single('imagem_do_formData') significa que a rota espera um arquivo no campo imagem_do_formData, upload.single processa apenas um arquivo por vez
+  const {id_user} = req.body;
+  const imagem = req.file;
+
+  if (!id_user || !imagem) {
+    return res.status(400).send('ID de usuário e imagem são obrigatórios!');
+  }
+
+  try {
+    const query = 'INSERT INTO UsuarioImagem (id_user, imagem) VALUES ($1, $2)';
+    await client.query(query, [id_user, imagem.buffer]); //O buffer do arquivo contém os dados binários da imagem
+
+    res.status(200).send('Imagem carregada com sucesso!');
+  } catch (error) {
+    console.error('Erro ao salvar imagem', error);
+    res.status(500).send('Erro ao salvar imagem!');
+  }
+});
 
 
 // Inicia o servidor na porta 3000

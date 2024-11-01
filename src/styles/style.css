@@ -31,6 +31,30 @@ body {
     /* background-color: aqua; */
   }
 
+  /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-Upload de Arquivos=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+  .ImagemIconUpload{
+    width: 50px;
+    height: 50px;
+  }
+  #dropArea {
+    margin-left: 5%;
+    margin-right: 5%;
+    padding-top: 1%;
+    padding-bottom: 1%;
+
+    border: 2px dashed #cccccc;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  #dropArea.hover {
+    background-color: #f0f8ff; /* Cor de fundo ao arrastar um arquivo para cima */
+  }
+  
+
+
   @media (max-width: 1000px){
     .h3-centralizado{
       font-size: 1.6em;

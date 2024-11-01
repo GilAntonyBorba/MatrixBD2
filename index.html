@@ -348,6 +348,100 @@
           <div class="swiper-pagination"></div>
       </div>
 
+      <h3>Upload de Imagem para Usuário</h3>
+      <form id="uploadForm" enctype="multipart/form-data"><!-- enctype... que informa ao navegador que o formulário enviará dados em várias partes, incluindo arquivos. -->
+        <label for="id_user">ID do Usuário:</label>
+        <input type="number" id="id_user" name="id_user" required>
+        <br><br>
+
+         <!-- Área Drag and Drop -->
+        <div id="dropArea">
+          <p>Arraste e Solte a Imagem Escolhida</p>
+          <img src="src/imagens/Icons/Upload.png" alt="Upload Icon" class="ImagemIconUpload">
+        </div>
+        
+        <!-- Upload de Arquivo Normal -->
+        <label for="imagem">Ou:</label>
+        <input type="file" id="imagem" name="imagem" accept="image/*" required>
+
+        <br><br>
+        <button type="submit">Fazer Upload</button>
+      </form>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const dropArea = document.getElementById('dropArea');
+          const fileInput = document.getElementById('imagem');
+          let uploadedFile;
+
+          // Impede o comportamento padrão do navegador ao arrastar e soltar
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+          });
+
+          function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+
+          // Só para mudar a aparência ao arrastar o arquivo
+          ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('hover'), false);
+          });
+
+          ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('hover'), false);
+          });
+
+          // Após soltar a imagem na área
+          dropArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length) {
+              uploadedFile = files[0];
+              fileInput.files = files; // Para atualizar o campo de input com o arquivo para manter compatibilidade
+            }
+          });
+
+          // Envio do formulário
+          document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const id_user = document.getElementById('id_user').value;
+            const imagem = uploadedFile || fileInput.files[0]; // Usa o arquivo arrastado ou o selecionado
+
+            if (!id_user || !imagem) {
+              alert('ID do usuário e imagem são obrigatórios!');
+              return;
+            }
+
+            // FormData: interface JavaScript usada para construir dados chave-valor
+            const formData = new FormData();
+            formData.append('id_user', id_user);
+            formData.append('imagem_do_formData', imagem);
+
+            try {
+              const response = await fetch('http://localhost:3000/uploadImage', {
+                method: 'POST',
+                body: formData
+              });
+
+              if (response.ok) {
+                alert('Imagem carregada com sucesso!');
+              } else {
+                const errorText = await response.text();
+                alert(`Erro ao carregar imagem: ${errorText}`);
+              }
+            } catch (error) {
+              console.error('Erro ao carregar imagem:', error);
+              alert('Erro ao carregar imagem!');
+            }
+          });
+        });
+      </script>
+
+
+
+
 
 
       
