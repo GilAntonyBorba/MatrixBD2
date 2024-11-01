@@ -105,6 +105,8 @@ app.post('/login', async (req, res) => {
     console.error('ERRO ao fazer login!', error);
     res.status(500).send('ERRO ao fazer login!');
   }
+
+  
 });
 
 
