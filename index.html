@@ -131,15 +131,21 @@
 
             // Local onde serão inseridos os slides
             const swiperWrapper = document.getElementById('swiper-wrapper');
+            swiperWrapper.innerHTML = ''; // Limpa o conteúdo atual antes de adicionar novos slides
 
             // Para cada usuario, cria um slide
             usuarios.forEach(usuario => {
+
+              // Converte a imagem base64 para um URL de imagem, ou usa uma imagem padrão se estiver ausente
+              //permite que a imagem seja exibida diretamente na página usando a string codificada em base64.
+              const imgSrc = usuario.imagem  ? `data:image/${usuario.tipo_imagem};base64,${usuario.imagem}` : 'src/imagens/MatrixImagens/MatrixPoster.jpg';
+
               // Cria o slide com os dados do usuario
               const slide = document.createElement('div');
               slide.classList.add('swiper-slide');
               slide.innerHTML = `
                 <div class="card">
-                  <img src="src/imagens/MatrixImagens/MatrixPoster.jpg" alt="Usuarios" class="bd-placeholder-img card-img-top">
+                  <img src="${imgSrc}" alt="Usuarios" class="bd-placeholder-img card-img-top">
                   <div class="card-body">
                     <h5 class="card-title">${usuario.login}</h5>
                   </div>
@@ -397,7 +403,7 @@
           dropArea.addEventListener('drop', (e) => {
             const files = e.dataTransfer.files;
             if (files.length) {
-              uploadedFile = files[0];
+              uploadedFile = files[0];''
               fileInput.files = files; // Para atualizar o campo de input com o arquivo para manter compatibilidade
             }
           });

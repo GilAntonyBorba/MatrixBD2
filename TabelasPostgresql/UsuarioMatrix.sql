@@ -23,5 +23,6 @@ CREATE TABLE IF NOT EXISTS UsuarioImagem (
     id_imagem SERIAL PRIMARY KEY,
     id_user INT REFERENCES Usuario(id_user) ON DELETE CASCADE,
     imagem BYTEA NOT NULL,
+	tipo_imagem VARCHAR(10),
     data_upload TIMESTAMP DEFAULT NOW()
 );

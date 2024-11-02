@@ -11,6 +11,9 @@ app.use(cors());  // Habilita CORS para permitir requisições do front-end
 app.use(bodyParser.json());  // Para processar JSON
 app.use(bodyParser.urlencoded({ extended: true }));  //permite que o servidor Express processe dados de formulários HTML, enviados via POST
 
+
+
+
 // Configuração do cliente PostgreSQL
 const client = new Client({
   user: 'postgres',
@@ -25,19 +28,31 @@ client.connect()
   .then(() => console.log('Conectado ao banco de dados!'))
   .catch(err => console.error('Erro de conexão!', err.stack));
 
-// Rota para pegar os dados dos jogadores
-app.get('/usuarios', (req, res) => {
-  const query = 'SELECT login, id_user, senha FROM Usuario';
-  
-  client.query(query, (err, result) => {
-    if (err) {
-      console.error('Erro na consulta', err.stack);
-      res.status(500).send('Erro ao consultar jogadores');
-    } else {
-      res.json(result.rows);  // Retorna os dados em formato JSON
-    }
-  });
+
+// Rota para pegar os dados dos usuários, incluindo imagens
+app.get('/usuarios', async (req, res) => {
+  const query = `
+    SELECT usuario.id_user, usuario.login, usuarioimg.imagem, usuarioimg.tipo_imagem
+    FROM Usuario usuario LEFT JOIN UsuarioImagem usuarioimg ON usuario.id_user = usuarioimg.id_user
+  `;
+
+  try {
+    const result = await client.query(query);
+    const usuarios = result.rows.map(usuario => {
+      // Converte a imagem de binário para base64(formato que pode ser manipulado) se ela existir
+      //base64 é usada para representar dados binários em uma string de texto, o que facilita o envio de imagens para o front-end.
+      if (usuario.imagem) {
+        usuario.imagem = Buffer.from(usuario.imagem).toString('base64');
+      }
+      return usuario;
+    });
+    res.json(usuarios); // Retorna os dados em formato JSON
+  } catch (error) {
+    console.error('Erro ao buscar usuários e imagens', error.stack);
+    res.status(500).send('Erro ao buscar usuários e imagens');
+  }
 });
+
 
 
 //Para receber os dados de criação de conta e os inserir na tabela correspondente
@@ -113,26 +128,49 @@ app.post('/login', async (req, res) => {
 
 // Configuração do multer para upload de arquivos
 const storage = multer.memoryStorage(); // Armazena o arquivo na memória do servidor temporariamente
-const upload = multer({ storage: storage }); //configura o multer para utilizar o armazenamento que acabamos de definir
+const upload = multer({
+  storage: storage, // Usa o armazenamento configurado acima
+  limits: { fileSize: 10 * 1024 * 1024 }, // Limite de tamanho do arquivo (1 MB = 1024 KB e 1 KB = 1024 bytes)
+  fileFilter: (req, file, cb) => { // Função para limitar tipos de arquivos
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "video/mp4"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true); // Aceita o arquivo
+    } else {
+      cb(new Error("Tipo de arquivo inválido! Apenas JPG, PNG, GIF e MP4 são permitidos."), false);
+    }
+  }
+});
 
 // Rota para upload de imagem de usuário
-app.post('/uploadImage', upload.single('imagem_do_formData'), async (req, res) => {// upload.single('imagem_do_formData') significa que a rota espera um arquivo no campo imagem_do_formData, upload.single processa apenas um arquivo por vez
-  const {id_user} = req.body;
-  const imagem = req.file;
+app.post('/uploadImage', (req, res) => {
+  upload.single('imagem_do_formData')(req, res, async (err) => { // upload.single('imagem_do_formData') significa que a rota espera um arquivo no campo imagem_do_formData, upload.single processa apenas um arquivo por vez
+    //(req, res, async (err) => { ... }) chamada após o multer processar o arquivo
 
-  if (!id_user || !imagem) {
-    return res.status(400).send('ID de usuário e imagem são obrigatórios!');
-  }
+    if (err instanceof multer.MulterError) {
+      return res.status(400).send('O arquivo ultrapassa o tamanho máximo permitido de 10MB!');
+    } else if (err) {
+      return res.status(400).send(err.message); // Erro de tipo de arquivo
+    }
+  
+    const {id_user} = req.body;
+    const imagem = req.file;
 
-  try {
-    const query = 'INSERT INTO UsuarioImagem (id_user, imagem) VALUES ($1, $2)';
-    await client.query(query, [id_user, imagem.buffer]); //O buffer do arquivo contém os dados binários da imagem
+    if (!id_user || !imagem) {
+      return res.status(400).send('ID de usuário e imagem são obrigatórios!');
+    }
 
-    res.status(200).send('Imagem carregada com sucesso!');
-  } catch (error) {
-    console.error('Erro ao salvar imagem', error);
-    res.status(500).send('Erro ao salvar imagem!');
-  }
+    try {
+      const tipoImagem = imagem.mimetype.split('/')[1]; // extrai "jpeg", "png", etc...
+
+      const query = 'INSERT INTO UsuarioImagem (id_user, imagem, tipo_imagem) VALUES ($1, $2, $3)';
+      await client.query(query, [id_user, imagem.buffer, tipoImagem]); //O buffer do arquivo contém os dados binários da imagem
+
+      res.status(200).send('Imagem carregada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar imagem', error);
+      res.status(500).send('Erro ao salvar imagem!');
+    }
+  });
 });
 
 
