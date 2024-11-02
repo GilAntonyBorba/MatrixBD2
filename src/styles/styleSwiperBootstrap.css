@@ -40,10 +40,14 @@ html,body {
     display: inline-block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    /* position: relative; */
-    /* flex: 1; */
-    /* overflow: hidden; */
+    max-height: 327px;
+    max-width: 420px;
+    object-fit: contain;
+    /* position: relative;
+    flex: 1;
+    overflow: hidden; */
+    background: transparent;
+    background-color: rgba(245, 245, 247);
   }
   .list-group-item{
     display: flex;
@@ -195,6 +199,7 @@ html,body {
     color: white;
     width: 18.508px;
     height: 18.5186px;
+    background-color: hsla(240, 11%, 96%, 0);
   }
   .btn-shopping-cart-show{
     display: none;
